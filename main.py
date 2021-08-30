@@ -347,9 +347,6 @@ def calculate():
 
     if q > 0 :
 
-
-
-
         #establishing coordinates
 
 
@@ -380,9 +377,6 @@ def calculate():
     #sag curve printing parameters
 
     if q < 0 :
-
-
-
 
         #establishing coordinates
 
