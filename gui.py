@@ -9,7 +9,7 @@ from matplotlib.figure import Figure
 from tkinter import Tk, Canvas, Label, StringVar, OptionMenu, Entry, Button
 from matplotlib import style
 
-
+import lvc_functions as lvc_func
 
 class MyFirstGUI:
     def __init__(self):
@@ -24,7 +24,6 @@ class MyFirstGUI:
 
         main.configure(bg = 'white')
         
-
 
         self.input_box = Canvas(main, width = 920, height = 170, bg = 'white')
         self.input_box.configure(borderwidth = 0, highlightthickness = 0)
@@ -92,7 +91,6 @@ class MyFirstGUI:
         main.title('Vertical Curve Calculator')
         main.geometry('940x700')
 
-
         self.tkvar = StringVar(main)
         self.tkvar.set('yes')
         self.tkvar_1 = StringVar(main)
@@ -132,7 +130,6 @@ class MyFirstGUI:
         main.mainloop()
 
 
-######################
 #GUI specific functions
     def option_command(self):
 
@@ -161,153 +158,18 @@ class MyFirstGUI:
             self.label_6 = Label ( text = ' H2 (ft)', font = ('Times New Roman', 15), bg = 'azure')
             self.label_6.place(x = 390 , y = 215, width = 50, height = 30)
 
-
-
-
-
-
-#Non-GUI specific functions
-    def determine_SSD(self, design_speed):
-        designspeeds = ['15 (mph)', '20 (mph)',  '25 (mph)', '30 (mph)', '35 (mph)', '40 (mph)', '45 (mph)', 
-                            '50 (mph)', '55 (mph)', '60 (mph)', '65 (mph)', '70 (mph)', '75 (mph)', '80 (mph)']
-        ssdistances = [80, 115, 155, 200, 250, 305, 360, 425, 495, 570, 645, 730, 820, 910]
-        index = designspeeds.index(design_speed)
-        return ssdistances[index]
-
-    def station_from_feet(self, ticks):
-            ticks_round = round(float(ticks)/100, 2)
-            small_station_1 = (ticks_round - int(ticks_round))
-            small_station = "{:.2f}".format(small_station_1)
-            station = str(int(ticks_round)) +  ' + ' + small_station[2:]
-            return station
-    
-    def find_elev_max_statements(self, curve_type, G1, G2, extreme_station, q, y_adjustment):
-            if curve_type == 'crest':
-                if G1 > 0 and G2 < 0:
-                    elevation_statement = '%s' %(extreme_station)
-                    max_elevation = '%s (ft)' %(round(q+y_adjustment, 2))
-                if G1 < 0 and G2 < 0:
-                    elevation_statement = 'N/A'
-                    max_elevation = 'N/A'
-                if G1 > 0 and G2 > 0:
-                    elevation_statement = 'N/A'
-                    max_elevation = 'N/A'
-            if curve_type == 'sag':
-                if G1 < 0 and G2 > 0:
-                    elevation_statement = '%s' %(extreme_station)
-                    max_elevation = '%s (ft)' %(round(q+y_adjustment, 2))
-                if G1 > 0 and G2 > 0:
-                    elevation_statement = 'N/A'
-                    max_elevation = 'N/A'
-                if G1 < 0 and G2 < 0:
-                    elevation_statement = 'N/A'
-                    max_elevation = 'N/A'
-            return elevation_statement, max_elevation
-
-    def crest_or_sag(self, G1, G2):    
-        G1 = float(G1)
-        G2 = float(G2)
-        
-        if G1 > 0 and G2 > 0 and abs(G1) > abs(G2) :
-            curve_type = 'crest'
-        if G1 < 0 and G2 < 0 and abs(G1) < abs(G2) :
-            curve_type = 'crest'
-
-        if G1 > 0 and G2 < 0:
-            curve_type = 'crest'
-
-
-        #Sag Cases
-        if G1 < 0 and G2 < 0 and abs(G1) > abs(G2) :
-            curve_type = 'sag'
-
-        if G1 > 0 and G2 > 0 and abs(G1) < abs(G2) :
-            curve_type = 'sag'
-
-        if G1 < 0 and G2 > 0 :
-            curve_type = 'sag'
-        return curve_type
-
-    def get_crest_lvc(self, SSD, H1, H2, A):
-        # Equation Determination
-        # #first lvc answer is based on assumption that L<SSD
-        lvc = 2*SSD - (200*(H1**(1/2) + H2**(1/2))**2)/A
-        #If assumption that L < SSD is incorrect
-        if lvc > float(SSD) or lvc < 0:
-            lvc = (A*SSD**2)/(200*(H1**(1/2) + H2**(1/2))**2)
-        return lvc
-
-    def get_sag_lvc(self, SSD, A):
-        #first lvc is based on assumption that L<SSD
-        lvc = 2*SSD - (400 + 2.5*SSD)/A
-        #If assumption that L<SSD is incorrect
-        if lvc > SSD or lvc < 0 :
-            lvc = (A*(SSD**2))/(400+3.5*SSD)
-
-########################
-
-
-    #defining executable (takes form of button)
-    def calculate(self):
-
-        #retrieving inputs
-
-        if len(self.inputBox_station_2.get()) == 1:
-            box_2 = '0'+ self.inputBox_station_2.get()
-        if len(self.inputBox_station_2.get()) == 2:
-            box_2 = self.inputBox_station_2.get()
-        else:
-            box_2 = '00'
-
-        x_adjustment = float(self.inputBox_station_1.get() + box_2)
-        y_adjustment = float(self.inputBox_elevation.get())
-        G1 = float(self.inputBox_2.get())
-        G2 = float(self.inputBox_3.get())
-        height = self.tkvar.get()
-        design_speed = self.tkvar_1.get()
-
-
-        if height == 'yes':
-            H1 = 3.5
-            H2 = 2
-        if height == 'no':
-            H1 = float(self.inputBox_5.get())
-            H2 = float(self.inputBox_6.get())
-
-
-        #Invalid variable input warnings
+    def gradient_error_message(self, G1, G2):
         #Grade 1
-
         if (G1 < -12 or G1 > 12):
-        #instruction repeat
             error_label_1 = Label(self.main, text = '*Between -12% and 12%', fg = 'red', font = ('Times New Roman', 15), bg = 'azure')
             error_label_1.place(x = 160, y = 125,  height = 30)
-
-
         #Grade 2
         if (G2 < -12 or G2 > 12):
-
             error_label_1 = Label(self.main, text = '*Between -12% and 12%', fg = 'red', font = ('Times New Roman', 15), bg = 'azure')
-            error_label_1.place(x = 160, y = 155,  height = 30 )
+            error_label_1.place(x = 160, y = 155,  height = 30)
 
-        
-        SSD = self.determine_SSD(design_speed)
 
-        A = abs(G2 - G1)
-
-        curve_type = self.crest_or_sag(G1, G2)
-        
-
- 
-        if curve_type == 'crest' :
-            lvc = self.get_crest_lvc(SSD, H1, H2, A)
-        
-        if curve_type == 'sag':
-            lvc = self.get_sag_lvc(SSD, A)
-    
-    
-    ##############################        Printing to GUI Begins       ####################################
-
+    def plot(self, G1, G2, x_adjustment, y_adjustment, lvc, SSD):
         a = (G2 - G1)/(2*lvc)
         b = G1
 
@@ -316,22 +178,14 @@ class MyFirstGUI:
 
         x_extreme = -(b_1)/(2*a_1)
 
-        ##
         x = np.arange (x_adjustment , lvc +x_adjustment, 0.01)
-
         y = (((x-x_adjustment)**2)*a_1 + b_1*(x-x_adjustment))/100 + y_adjustment
-
         q = ((x_extreme**2)*a_1 + b_1*x_extreme)/100
 
-
-
-
-        ##
+        
         x_before = np.arange (-lvc/2 + x_adjustment, x_adjustment , 0.01)
-
         z = ((G1)*(x_before- x_adjustment))/100 + y_adjustment
 
-        #
         x_before_dashed = np.arange (x_adjustment, lvc+100 +x_adjustment, 0.01)
 
         z_1 = ((G1)*(x_before_dashed-x_adjustment))/100+y_adjustment
@@ -365,10 +219,7 @@ class MyFirstGUI:
         if q > 0 :
 
             #establishing coordinates
-
-
             x_axis_bounds = [-lvc/2.5+ x_adjustment, lvc*1.33+ x_adjustment]
-
 
             if tricky_point_y_value > 0 and tricky_point_y > 0:
                 #case 1
@@ -381,7 +232,7 @@ class MyFirstGUI:
             #case 3
             if tricky_point_y_value > 0 and tricky_point_y < 0 or tricky_point_y == 0:
                 if SSD > 355 :
-                    y_axis_bounds = [ 2*tricky_point_y-10+ y_adjustment , tricky_point_y_value*2+ y_adjustment]
+                    y_axis_bounds = [ 2*tricky_point_y-10+ y_adjustment, tricky_point_y_value*2+ y_adjustment]
                 else:
                     y_axis_bounds = [ 2*tricky_point_y-3+ y_adjustment, tricky_point_y_value*2]
 
@@ -392,13 +243,10 @@ class MyFirstGUI:
 
 
         #sag curve printing parameters
-
         if q < 0 :
 
             #establishing coordinates
-
             x_axis_bounds = [-lvc/2.5+ x_adjustment, lvc*1.33+ x_adjustment]
-
             if tricky_point_y_value < 0 and tricky_point_y < 0:
                 #case 1
                 if tricky_point_y < tricky_point_y_value:
@@ -406,10 +254,8 @@ class MyFirstGUI:
                 #case 2
                 if tricky_point_y_value < tricky_point_y:
                     y_axis_bounds = [  tricky_point_y_value*1.5+ y_adjustment, -tricky_point_y_value*0.6 + y_adjustment]
-
             #case 3
             if tricky_point_y_value < 0 and tricky_point_y > 0 or tricky_point_y == 0 :
-
                     if SSD > 355 :
                         y_axis_bounds = [ tricky_point_y_value*2+ y_adjustment, 2*tricky_point_y+10 + y_adjustment ]
                     else:
@@ -417,14 +263,11 @@ class MyFirstGUI:
             #case 4
             if tricky_point_y_value > 0 and tricky_point_y > 0:
                 y_axis_bounds = [ -tricky_point_y_value*2+ y_adjustment, tricky_point_y*1.35+ y_adjustment]
-
-
-
-
+                        
+            
+            
         f = Figure(figsize = (5,5), dpi = 100)
-
         a = f.add_subplot(111)
-
 
         a.plot(x,y,'k')
 
@@ -463,41 +306,66 @@ class MyFirstGUI:
                 l.append(station)
                 break
         a.set_xticklabels(l)
+        return x_extreme, q
 
-    ################
+    #defining executable (takes form of button)
+    def calculate(self):
 
+        #retrieving inputs
+        if len(self.inputBox_station_2.get()) == 1:
+            box_2 = '0'+ self.inputBox_station_2.get()
+        if len(self.inputBox_station_2.get()) == 2:
+            box_2 = self.inputBox_station_2.get()
+        else:
+            box_2 = '00'
+
+        x_adjustment = float(self.inputBox_station_1.get() + box_2)
+        y_adjustment = float(self.inputBox_elevation.get())
+        G1 = float(self.inputBox_2.get())
+        G2 = float(self.inputBox_3.get())
+        height = self.tkvar.get()
+        design_speed = self.tkvar_1.get()
+
+        if height == 'yes':
+            H1 = 3.5
+            H2 = 2
+        if height == 'no':
+            H1 = float(self.inputBox_5.get())
+            H2 = float(self.inputBox_6.get())
+
+        #Invalid variable input warnings, repeats instructions
+        self.gradient_error_message(G1, G2)
+    
+        lvc, SSD, curve_type = lvc_func.get_ssd_and_lvc(design_speed, G1, G2, H1, H2)
+
+        x_extreme, q = self.plot(G1, G2, x_adjustment, y_adjustment, lvc, SSD)
 
         #logic for maximum points
-
-        extreme_station = self.station_from_feet(x_extreme+x_adjustment)
+        extreme_station = lvc_func.station_from_feet(x_extreme+x_adjustment)
         
-        elevation_statement = self.find_elev_max_statements(curve_type, G1, G2, extreme_station, q, y_adjustment)[0]
-        max_elevation = self.find_elev_max_statements(curve_type, G1, G2, extreme_station, q, y_adjustment)[1]
+        elevation_statement = lvc_func.find_elev_max_statements(curve_type, G1, G2, extreme_station, q, y_adjustment)[0]
+        max_elevation = lvc_func.find_elev_max_statements(curve_type, G1, G2, extreme_station, q, y_adjustment)[1]
 
 
-        lvc_label_text_x = 580
-        lvc_label_text_y = 29
+        lvc_label_xy = (580, 29)
+        
+        SSD_label_xy = (580, 64)
+        
+        q_label_text_xy = (580, 99)
+        
+        elevation_label_text_xy = (580, 134)
 
-        SSD_label_text_x = 580
-        SSD_label_text_y = 64
+        self.input_box.create_rectangle(535, 17, 625, 42, fill='lavender blush')
+        self.input_box.create_text(*lvc_label_xy, text = '%s (ft)' %(round(lvc, 2)))
 
-        q_label_text_x = 580
-        q_label_text_y = 99
+        self.input_box.create_rectangle(535, 52, 625, 77, fill='lavender blush')
+        self.input_box.create_text(*SSD_label_xy, text = '%s (ft)' %(round(SSD, 2)))
 
-        elevation_label_text_x = 580
-        elevation_label_text_y = 134
+        self.input_box.create_rectangle(535, 87, 625, 112, fill='lavender blush')
+        self.input_box.create_text(*q_label_text_xy, text = elevation_statement)
 
-        self.input_box.create_rectangle( 535, 17, 625, 42, fill='lavender blush')
-        self.input_box.create_text(lvc_label_text_x, lvc_label_text_y, text = '%s (ft)' %(round(lvc, 2)))
-
-        self.input_box.create_rectangle( 535, 52, 625, 77, fill='lavender blush')
-        self.input_box.create_text(SSD_label_text_x, SSD_label_text_y, text = '%s (ft)' %(round(SSD, 2)))
-
-        self.input_box.create_rectangle( 535, 87, 625, 112, fill='lavender blush')
-        self.input_box.create_text(q_label_text_x, q_label_text_y, text = elevation_statement)
-
-        self.input_box.create_rectangle( 535, 122, 625, 147, fill='lavender blush')
-        self.input_box.create_text(elevation_label_text_x, elevation_label_text_y, text = max_elevation)
+        self.input_box.create_rectangle(535, 122, 625, 147, fill='lavender blush')
+        self.input_box.create_text(*elevation_label_text_xy, text = max_elevation)
 
 main = MyFirstGUI()
 
